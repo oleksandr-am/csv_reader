@@ -3,21 +3,21 @@ use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 use std::collections::HashMap;
+use csv::ReaderBuilder;
 
 fn read_csv<P: AsRef<Path>>(filename: P) -> Result<(), Box<dyn Error>> {
     let file = File::open(filename)?;
-    let mut rdr = csv::Reader::from_reader(file);
+    let mut rdr = ReaderBuilder::new()
+        .delimiter(b';')
+        .from_reader(file);
 
     let mut obj = HashMap::new();
    
     for result in rdr.records() {
         let record = result?;
 
-        let string_part = record.get(0).unwrap().to_string(); 
-        let parts: Vec<&str> = string_part.split(';').collect();
-
-        let city_name = parts[0].to_string();
-        let temp_value: f64 = parts[1].parse().expect("Failed to parse number");
+        let city_name = record.get(0).unwrap().to_string();
+        let temp_value: f64 = record.get(1).unwrap().parse().expect("Failed to parse number");
 
         obj.entry(city_name)
             .or_insert_with(Vec::new)
